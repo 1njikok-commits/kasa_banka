@@ -1,0 +1,8 @@
+{
+  "name": "kasa-banka-sistemi",
+  "version": "2.0.0",
+  "description": "Kasa sistemi ve banka demo - ortak bakiye ile birlesik",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^4.19.2" }
+}
