@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kasa Sistemi</title>
+<style>
+  :root{
+    --bg:#0F1419; --card:#171D25; --line:#242C36; --teal:#3FBFA8; --gold:#E8B33D;
+    --red:#D65D6B; --text:#EAEFF3; --dim:#8593A1; --mono:'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0; min-height:100%;}
+  body{
+    background: radial-gradient(circle at 20% 10%, rgba(63,191,168,0.06), transparent 40%), var(--bg);
+    color:var(--text); font-family:-apple-system,'Segoe UI',sans-serif;
+    display:flex; align-items:flex-start; justify-content:center; min-height:100vh; padding:20px;
+  }
+  .wrap{width:100%; max-width:420px;}
+  .top-nav{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:11.5px; color:var(--dim);}
+  .top-nav a{color:var(--teal); text-decoration:none; font-weight:600;}
+
+  .auth-card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:30px 26px; margin-top:2vh;}
+  .tabs{display:flex; gap:6px; margin-bottom:22px; background:#0C1116; padding:4px; border-radius:12px;}
+  .tab{flex:1; text-align:center; padding:9px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; color:var(--dim);}
+  .tab.active{background:var(--teal); color:#08221D;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:11.5px; color:var(--dim); margin-bottom:5px;}
+  .field input{width:100%; padding:12px 14px; background:#0C1116; border:1px solid var(--line); border-radius:10px; color:var(--text); font-size:14px; outline:none;}
+  .field input:focus{border-color:var(--teal);}
+  .primary-btn{width:100%; padding:14px; border:none; border-radius:12px; background:var(--teal); color:#08221D; font-size:14.5px; font-weight:700; cursor:pointer; margin-top:8px;}
+  .auth-msg{min-height:16px; font-size:12.5px; margin-top:10px; text-align:center; color:var(--red);}
+  .auth-msg.ok{color:var(--teal);}
+
+  .dash{display:none;}
+  .dash.show{display:block;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .who{font-size:14px;}
+  .who b{color:var(--teal);}
+  .badge{display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.5px; padding:3px 8px; border-radius:6px; margin-left:6px; background:rgba(232,179,61,0.15); color:var(--gold);}
+  .top-actions{display:flex; gap:8px;}
+  .icon-btn{width:34px; height:34px; border-radius:9px; background:var(--card); border:1px solid var(--line); color:var(--dim); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; text-decoration:none;}
+  .icon-btn:hover{color:var(--teal); border-color:var(--teal);}
+
+  .balance-strip{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:12px 15px; margin-bottom:14px; font-size:13px;
+  }
+  .balance-strip .lbl{color:var(--dim);}
+  .balance-strip .amt{font-family:var(--mono); font-weight:700; color:var(--teal); font-size:15px;}
+
+  .premium-banner{background:linear-gradient(90deg, rgba(232,179,61,0.12), rgba(232,179,61,0.02)); border:1px solid rgba(232,179,61,0.3); border-radius:14px; padding:14px 16px; margin-bottom:16px;}
+  .premium-banner p{margin:0 0 10px; font-size:12.5px; color:var(--dim);}
+  .premium-banner button{width:100%; padding:12px; border:none; border-radius:9px; background:var(--gold); color:#2A1F05; font-weight:700; font-size:13px; cursor:pointer;}
+  .premium-msg{font-size:11.5px; margin-top:8px; text-align:center; color:var(--red);}
+  .premium-msg.ok{color:var(--teal);}
+
+  .ad-banner{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 15px; margin-bottom:14px; text-decoration:none; color:var(--text); font-size:12.5px;}
+  .ad-banner:hover{border-color:var(--teal);}
+  .ad-tag{flex-shrink:0; font-size:9.5px; font-weight:700; letter-spacing:0.5px; color:var(--dim); border:1px solid var(--line); border-radius:5px; padding:2px 6px;}
+
+  .vault{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px;}
+  .vault-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .vault-head .name{font-size:14px; font-weight:700;}
+  .vault.unlocked .vault-head .name{color:var(--teal);}
+  .buy-btn{
+    width:100%; padding:12px; border:none; border-radius:10px; background:var(--teal);
+    color:#08221D; font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+  .buy-btn.locked{background:#3a3f47; color:var(--dim); cursor:not-allowed;}
+  .vault-err{font-size:11.5px; color:var(--red); margin-top:8px;}
+  .vault-link{display:block; margin-top:10px; padding:12px; text-align:center; border:1px solid var(--teal); color:var(--teal); border-radius:9px; text-decoration:none; font-size:13px; font-weight:700;}
+
+  .overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:flex-start; justify-content:center; padding:20px; z-index:10; overflow-y:auto;}
+  .overlay.show{display:flex;}
+  .panel{width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; margin-top:5vh;}
+  .panel h2{font-size:15px; margin:0 0 4px;}
+  .panel .hint{font-size:11px; color:var(--dim); margin:0 0 16px; line-height:1.5;}
+  .vrow{background:#0C1116; border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:10px;}
+  .vrow .r{display:flex; gap:6px; margin-bottom:6px;}
+  .vrow input{flex:1; min-width:0; padding:8px 9px; background:#12181F; border:1px solid var(--line); border-radius:7px; color:var(--text); font-size:12px; font-family:var(--mono);}
+  .vrow .chk{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--dim);}
+  .panel .save-btn, .panel .close-btn{width:100%; padding:12px; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; margin-top:6px; border:none;}
+  .panel .save-btn{background:var(--teal); color:#08221D;}
+  .panel .close-btn{background:transparent; color:var(--dim); border:1px solid var(--line);}
+  .divider2{border:none; border-top:1px dashed var(--line); margin:16px 0;}
+  .tag-row{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .tag{display:flex; align-items:center; gap:6px; background:#0C1116; border:1px solid var(--line); border-radius:7px; padding:5px 8px; font-size:11.5px;}
+  .tag button{background:none; border:none; color:var(--red); cursor:pointer; font-size:13px; padding:0;}
+
+  .social-corner{position:fixed; bottom:14px; left:14px; display:flex; flex-direction:column; gap:8px; z-index:5;}
+  .social-corner a{width:34px; height:34px; border-radius:10px; background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--dim); text-decoration:none;}
+  .social-corner a:hover{color:var(--teal); border-color:var(--teal);}
+  .social-corner svg{width:17px; height:17px; fill:currentColor;}
+</style>
+</head>
+<body>
+
+<div class="social-corner">
+  <a href="https://www.tiktok.com/@kako_7078" target="_blank" rel="noopener" title="TikTok: kako_7078">
+    <svg viewBox="0 0 24 24"><path d="M16.6 5.82c-.9-.98-1.4-2.26-1.4-3.62h-3.1v14.2c0 1.53-1.24 2.77-2.77 2.77a2.77 2.77 0 01-2.77-2.77 2.77 2.77 0 012.77-2.77c.28 0 .55.04.8.12V10.6a6.1 6.1 0 00-.8-.05A5.94 5.94 0 006.5 22.5 5.94 5.94 0 0012.4 16.6V9.4a8.94 8.94 0 004.9 1.48V7.76a5.5 5.5 0 01-.7-1.94z"/></svg>
+  </a>
+  <a href="https://t.me/hanxs89" target="_blank" rel="noopener" title="Telegram: hanxs89">
+    <svg viewBox="0 0 24 24"><path d="M21.9 4.3L18.6 20c-.2 1-.9 1.2-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.8 13 2 11.5c-1-.3-1-1 .2-1.5l18.1-7c.8-.3 1.6.2 1.6 1.3z"/></svg>
+  </a>
+</div>
+
+<div class="wrap">
+  <div class="top-nav">
+    <span>🔐 Kasa Sistemi</span>
+    <a href="banka-demo.html">Banka Demo →</a>
+  </div>
+
+  <div class="auth-card" id="authCard">
+    <div class="tabs">
+      <div class="tab active" data-tab="login">Giriş</div>
+      <div class="tab" data-tab="register">Kayıt</div>
+    </div>
+    <div id="loginForm">
+      <div class="field"><label>Kullanıcı adı</label><input type="text" id="loginUser"></div>
+      <div class="field"><label>Şifre</label><input type="password" id="loginPass"></div>
+      <button class="primary-btn" id="loginBtn">Giriş Yap</button>
+    </div>
+    <div id="registerForm" style="display:none;">
+      <div class="field"><label>Kullanıcı adı</label><input type="text" id="regUser"></div>
+      <div class="field"><label>Şifre</label><input type="password" id="regPass"></div>
+      <button class="primary-btn" id="registerBtn">Kayıt Ol (0 TMT ile başla)</button>
+    </div>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+
+  <div class="dash" id="dash">
+    <div class="topbar">
+      <div class="who">Hoş geldin, <b id="whoName"></b><span class="badge" id="premBadge" style="display:none;">PREMIUM</span></div>
+      <div class="top-actions">
+        <a href="banka-demo.html" class="icon-btn" title="Banka Demo">💳</a>
+        <div class="icon-btn" id="gearBtn" title="Kasa Ayarları">⚙</div>
+        <div class="icon-btn" id="logoutBtn" title="Çıkış">⏻</div>
+      </div>
+    </div>
+
+    <div class="balance-strip">
+      <span class="lbl">Bakiyen</span>
+      <span class="amt" id="balanceAmt">0 TMT</span>
+    </div>
+
+    <div class="premium-banner" id="premBanner">
+      <p>Premium kasaların kilidini açmak için tek seferlik <b id="premPriceText">20 TMT</b> öde.</p>
+      <button id="premBtn">Premium Ol</button>
+      <div class="premium-msg" id="premMsg"></div>
+    </div>
+
+    <a href="#" target="_blank" rel="noopener" class="ad-banner" id="adBanner">
+      <span class="ad-tag">Reklam</span>
+      <span id="adText">Reklam yükleniyor...</span>
+    </a>
+
+    <div id="vaultsWrap"></div>
+  </div>
+</div>
+
+<div class="overlay" id="adminOverlay">
+  <div class="panel">
+    <h2>Yönetici Girişi</h2>
+    <p class="hint">Kasa ayarlarını açmak için yönetici şifresini gir.</p>
+    <div class="field"><input type="text" id="adminPassInput" placeholder="Yönetici şifresi" autocomplete="off" autocapitalize="off"></div>
+    <div class="auth-msg" id="adminMsg"></div>
+    <button class="save-btn" id="adminConfirmBtn">Onayla</button>
+    <button class="close-btn" id="adminCancelBtn">İptal</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel">
+    <h2>Kasa Ayarları</h2>
+    <p class="hint">Kasa isimlerini, linklerini, premium olup olmadığını ve fiyatları buradan yönet. Bu ayarlar sunucuda saklanır, herkes için ortaktır.</p>
+    <div id="fieldsWrap"></div>
+    <hr class="divider2">
+    <div class="field"><label>Kasa açma ücreti (TMT)</label><input type="number" id="vaultPriceSetting"></div>
+    <div class="field"><label>Premium olma ücreti (TMT)</label><input type="number" id="premiumPriceSetting"></div>
+    <div class="field"><label>Yönetici şifresi</label><input type="text" id="adminPassSetting"></div>
+    <hr class="divider2">
+    <div class="field"><label>Reklam metni</label><input type="text" id="adTextSetting"></div>
+    <div class="field"><label>Reklam linki</label><input type="text" id="adLinkSetting"></div>
+    <hr class="divider2">
+    <div class="field">
+      <label>Sınırsız bakiyeli kullanıcılar (bu kişilerin bakiyesi hiç düşmez)</label>
+      <div class="tag-row" id="unlimitedTags"></div>
+      <div class="r" style="display:flex; gap:6px;">
+        <input type="text" id="addUnlimitedInput" placeholder="kullanıcı adı" style="flex:1; padding:9px 10px; background:#0C1116; border:1px solid var(--line); border-radius:8px; color:var(--text);">
+        <button type="button" id="addUnlimitedBtn" style="padding:9px 14px; border:none; border-radius:8px; background:var(--teal); color:#08221D; font-weight:700; cursor:pointer;">Ekle</button>
+      </div>
+    </div>
+    <button class="save-btn" id="saveBtn">Kaydet</button>
+    <button class="close-btn" id="closeBtn">Kapat</button>
+  </div>
+</div>
+
+<script>
+const api = (path, body) => fetch('/api/' + path, {
+  method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body || {})
+}).then(async r => { const j = await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error || 'Hata'); return j; });
+
+let currentUser = null, currentPass = null, adminPassCache = null;
+let unlimitedListDraft = [];
+
+const authCard = document.getElementById('authCard');
+const dash = document.getElementById('dash');
+const authMsg = document.getElementById('authMsg');
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const isLogin = t.dataset.tab === 'login';
+    document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+    authMsg.textContent = '';
+  });
+});
+
+document.getElementById('registerBtn').addEventListener('click', async ()=>{
+  const u = document.getElementById('regUser').value.trim();
+  const p = document.getElementById('regPass').value;
+  authMsg.className = 'auth-msg';
+  if(!u || !p){ authMsg.textContent = 'Kullanıcı adı ve şifre gir.'; return; }
+  try{
+    await api('register', { username:u, password:p });
+    authMsg.className = 'auth-msg ok';
+    authMsg.textContent = 'Kayıt tamamlandı, şimdi giriş yapabilirsin.';
+    document.querySelector('.tab[data-tab="login"]').click();
+  }catch(e){ authMsg.textContent = e.message; }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  authMsg.className = 'auth-msg';
+  try{
+    await api('login', { username:u, password:p });
+    currentUser = u; currentPass = p;
+    enterDashboard();
+  }catch(e){ authMsg.textContent = e.message; }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  currentUser = null; currentPass = null;
+  dash.classList.remove('show');
+  authCard.style.display = 'block';
+});
+
+function fmt(n){ return Number(n).toLocaleString('tr-TR'); }
+
+let meCache = null;
+let vaultMetaCache = null;
+
+async function enterDashboard(){
+  authCard.style.display = 'none';
+  dash.classList.add('show');
+  document.getElementById('whoName').textContent = currentUser;
+
+  const me = await api('me', { username: currentUser, password: currentPass });
+  meCache = me;
+  document.getElementById('balanceAmt').textContent = me.unlimited ? '∞ TMT' : fmt(me.balance) + ' TMT';
+  document.getElementById('premBadge').style.display = me.isPremium ? 'inline-block' : 'none';
+  document.getElementById('premBanner').style.display = me.isPremium ? 'none' : 'block';
+
+  const ad = await fetch('/api/ad').then(r=>r.json());
+  document.getElementById('adBanner').href = ad.link;
+  document.getElementById('adText').textContent = ad.text;
+
+  await renderVaults();
+}
+
+document.getElementById('premBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('premMsg');
+  msg.className = 'premium-msg';
+  try{
+    await api('premium/buy', { username: currentUser, password: currentPass });
+    msg.className = 'premium-msg ok';
+    msg.textContent = 'Premium aktif edildi!';
+    setTimeout(()=> enterDashboard(), 500);
+  }catch(e){ msg.textContent = e.message; }
+});
+
+async function renderVaults(){
+  const data = await fetch('/api/vaults').then(r=>r.json());
+  vaultMetaCache = data;
+  document.getElementById('premPriceText').textContent = data.premiumPrice + ' TMT';
+  const wrap = document.getElementById('vaultsWrap');
+  wrap.innerHTML = '';
+  data.vaults.forEach((v, i)=>{
+    const owned = meCache.unlockedVaults.includes(i);
+    const locked = v.premium && !meCache.isPremium;
+    const div = document.createElement('div');
+    div.className = 'vault' + (owned ? ' unlocked' : '');
+    div.innerHTML = `
+      <div class="vault-head">
+        <span class="name">${v.name}${v.premium ? ' <span class="badge">PREMIUM</span>' : ''}</span>
+      </div>
+      ${owned
+        ? `<a href="#" target="_blank" rel="noopener" class="vault-link" id="link-${i}">Bağlantıya Git</a>`
+        : `<button class="buy-btn ${locked?'locked':''}" data-idx="${i}">${locked ? 'Önce Premium Ol' : 'Satın Al — ' + data.vaultPrice + ' TMT'}</button>
+           <div class="vault-err" id="err-${i}"></div>`
+      }
+    `;
+    wrap.appendChild(div);
+    if(owned){
+      api('vaults/buy', { username: currentUser, password: currentPass, index: i }).then(r=>{
+        document.getElementById('link-'+i).href = r.link;
+      });
+    }
+  });
+
+  wrap.querySelectorAll('.buy-btn:not(.locked)').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const i = +btn.dataset.idx;
+      const err = document.getElementById('err-'+i);
+      err.textContent = '';
+      try{
+        const result = await api('vaults/buy', { username: currentUser, password: currentPass, index: i });
+        await enterDashboard();
+      }catch(e){
+        err.textContent = e.message;
+      }
+    });
+  });
+}
+
+const gearBtn = document.getElementById('gearBtn');
+const overlay = document.getElementById('overlay');
+const closeBtn = document.getElementById('closeBtn');
+const saveBtn = document.getElementById('saveBtn');
+const fieldsWrap = document.getElementById('fieldsWrap');
+const adminOverlay = document.getElementById('adminOverlay');
+const adminPassInput = document.getElementById('adminPassInput');
+const adminMsg = document.getElementById('adminMsg');
+const adminConfirmBtn = document.getElementById('adminConfirmBtn');
+const adminCancelBtn = document.getElementById('adminCancelBtn');
+
+gearBtn.addEventListener('click', ()=>{
+  adminPassInput.value = ''; adminMsg.textContent = '';
+  adminOverlay.classList.add('show'); adminPassInput.focus();
+});
+adminCancelBtn.addEventListener('click', ()=> adminOverlay.classList.remove('show'));
+adminOverlay.addEventListener('click', e=>{ if(e.target===adminOverlay) adminOverlay.classList.remove('show'); });
+
+async function tryAdminLogin(){
+  try{
+    const settings = await api('admin/settings', { adminPassword: adminPassInput.value });
+    adminPassCache = adminPassInput.value;
+    adminOverlay.classList.remove('show');
+    renderSettingsFields(settings);
+    overlay.classList.add('show');
+  }catch(e){ adminMsg.textContent = e.message; }
+}
+adminConfirmBtn.addEventListener('click', tryAdminLogin);
+adminPassInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryAdminLogin(); });
+
+function renderSettingsFields(settings){
+  fieldsWrap.innerHTML = '';
+  settings.vaults.forEach((v, i)=>{
+    const row = document.createElement('div');
+    row.className = 'vrow';
+    row.innerHTML = `
+      <div class="r">
+        <input data-idx="${i}" data-field="name" value="${v.name}" placeholder="Kasa adı">
+        <input data-idx="${i}" data-field="link" value="${v.link}" placeholder="Link" style="flex:2;">
+      </div>
+      <label class="chk"><input type="checkbox" data-idx="${i}" data-field="premium" ${v.premium ? 'checked' : ''}> Premium kasa</label>
+    `;
+    fieldsWrap.appendChild(row);
+  });
+  document.getElementById('vaultPriceSetting').value = settings.vaultPrice;
+  document.getElementById('premiumPriceSetting').value = settings.premiumPrice;
+  document.getElementById('adminPassSetting').value = settings.adminPass;
+  document.getElementById('adTextSetting').value = settings.ad.text;
+  document.getElementById('adLinkSetting').value = settings.ad.link;
+  fieldsWrap.dataset.raw = JSON.stringify(settings.vaults);
+
+  unlimitedListDraft = settings.unlimitedUsers.slice();
+  renderUnlimitedTags();
+}
+
+function renderUnlimitedTags(){
+  const wrap = document.getElementById('unlimitedTags');
+  wrap.innerHTML = '';
+  unlimitedListDraft.forEach(u=>{
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `<span>${u}</span><button type="button" data-u="${u}">✕</button>`;
+    wrap.appendChild(tag);
+  });
+  wrap.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      unlimitedListDraft = unlimitedListDraft.filter(x=>x!==b.dataset.u);
+      renderUnlimitedTags();
+    });
+  });
+}
+
+document.getElementById('addUnlimitedBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('addUnlimitedInput');
+  const val = input.value.trim();
+  if(val && !unlimitedListDraft.includes(val)){
+    unlimitedListDraft.push(val);
+    renderUnlimitedTags();
+  }
+  input.value = '';
+});
+
+closeBtn.addEventListener('click', ()=> overlay.classList.remove('show'));
+overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.classList.remove('show'); });
+
+saveBtn.addEventListener('click', async ()=>{
+  const vaults = JSON.parse(fieldsWrap.dataset.raw);
+  fieldsWrap.querySelectorAll('input').forEach(inp=>{
+    const idx = +inp.dataset.idx;
+    const field = inp.dataset.field;
+    if(field === 'premium') vaults[idx].premium = inp.checked;
+    else vaults[idx][field] = inp.value.trim();
+  });
+
+  try{
+    await api('admin/save', {
+      adminPassword: adminPassCache,
+      vaults,
+      vaultPrice: document.getElementById('vaultPriceSetting').value,
+      premiumPrice: document.getElementById('premiumPriceSetting').value,
+      newAdminPass: document.getElementById('adminPassSetting').value.trim(),
+      ad: {
+        text: document.getElementById('adTextSetting').value.trim(),
+        link: document.getElementById('adLinkSetting').value.trim()
+      },
+      unlimitedUsers: unlimitedListDraft
+    });
+    overlay.classList.remove('show');
+    if(dash.classList.contains('show')) enterDashboard();
+  }catch(e){ alert(e.message); }
+});
+</script>
+
+</body>
+      </html>
